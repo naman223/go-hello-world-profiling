@@ -5,6 +5,8 @@ import (
         "os"
         "net/http/pprof"
         _ "net/http/pprof"
+        "runtime"
+        "time"
 )
 
 const (
@@ -20,7 +22,19 @@ func sayHello(w http.ResponseWriter, r *http.Request) {
 
 
 func main() {
-		fmt.Println("Started http Server",port)
+		go func() {
+                for {
+                        var m runtime.MemStats
+                        runtime.ReadMemStats(&m)
+                        fmt.Println("\nAlloc = ", m.Alloc / 1024)
+                        fmt.Println("TotalAlloc = ", m.TotalAlloc / 1024)
+                        fmt.Println("Sys = ", m.Sys / 1024)
+                        fmt.Println("NumGC = ", m.NumGC)
+                        time.Sleep(15 * time.Second)
+                }
+        }()
+
+        fmt.Println("Started http Server",port)
         r := http.NewServeMux()
         r.HandleFunc("/", sayHello)
 
